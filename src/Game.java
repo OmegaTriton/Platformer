@@ -16,6 +16,8 @@ public class Game implements KeyListener, ActionListener{
   private Player player;
   private boolean running;
   private int x_velo, speed = 20;
+  private int x_acc = 2;
+  private boolean decelerating = false;
   private ArrayList<Integer> inputs;
   private ArrayList<Integer> uninputs;
 
@@ -34,6 +36,18 @@ public class Game implements KeyListener, ActionListener{
             i.remove();
             x_velo = 0;
           }
+          else if(decelerating){
+            for(Platform platform : currentLevel){
+              if(platform instanceof IcePlatform && !playerPlatformCollision(platform)){
+                x_velo -= x_acc; break;
+              }
+            }
+            if(key == KeyEvent.VK_A) x_velo -= x_acc;
+            if(x_velo < speed) {
+              x_velo = speed;
+              decelerating = false;
+            }
+          }
           else{
             if(key == KeyEvent.VK_D)
               x_velo = speed;
@@ -41,12 +55,26 @@ public class Game implements KeyListener, ActionListener{
               x_velo = -speed;
           }
         }
+        int i = -1;
         for(Platform platform : currentLevel){
+          i++;
           platform.setLocation(platform.getX()-x_velo, platform.getY());
           if (platform instanceof MPlatform mPlatform)
           {
             mPlatform.setDefaultPosition(new Point(mPlatform.getDefaultPosition().x-x_velo, mPlatform.getDefaultPosition().y));
             mPlatform.tick();
+          }
+          else if(platform instanceof IcePlatform icePlatform && playerPlatformCollision(platform)){
+            decelerating = true;
+            for(int j = 0; j < i; j++){
+              Platform platfor = currentLevel.get(i);
+              if(platfor instanceof MPlatform mPlatfor){
+                mPlatfor.setDefaultPosition(new Point(mPlatfor.getDefaultPosition().x-x_acc*x_velo/speed, mPlatfor.getDefaultPosition().y));
+                mPlatfor.tick();
+              }
+              else platfor.setLocation(platform.getX()-x_acc*x_velo/speed, platfor.getY());
+            }
+            x_velo+=x_acc*x_velo/speed;
           }
         }
         long update_time = System.nanoTime()-now;
@@ -59,6 +87,11 @@ public class Game implements KeyListener, ActionListener{
       }
     }
   };
+
+  private boolean playerPlatformCollision(Platform platform){
+    return (player.getX() > platform.getX() - player.getWidth() && player.getX() < platform.getX() + platform.getWidth())
+            && (player.getY() + player.getHeight() < platform.getY() + platform.getHeight() + player.getHeight()*7/8 && player.getY() + player.getHeight() >= platform.getY());
+  }
 
   private int findRemovedKey(int key){
     for(int i = 0; i < uninputs.size(); i++)
@@ -104,7 +137,7 @@ public class Game implements KeyListener, ActionListener{
     level1.add(new Platform(275+sf, 270));
     level1.add(new Platform(425+4*sf, 210));
     level1.add(new MPlatform(1075+8*sf, 270, false, 20));
-
+    level1.add(new IcePlatform(-100, 300));
 
     //add platforms
     for(Platform platform : level1)
