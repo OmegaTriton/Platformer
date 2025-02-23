@@ -1,5 +1,6 @@
-import java.awt.Image;
+import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 
 public abstract class Entity{
   private ImageIcon image;
@@ -8,7 +9,7 @@ public abstract class Entity{
   private int x_bound, y_bound;
   private boolean running = true;
 
-  public Entity(JPanel p, JFrame f, String filePath, double scale){
+  public Entity(JFrame f, String filePath, double scale){
     x_bound = f.getWidth();
     y_bound = f.getHeight();
     image = new ImageIcon(filePath);
@@ -17,15 +18,16 @@ public abstract class Entity{
     image = new ImageIcon(image.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT));
     image_pic = new JLabel(image);
     image_pic.setSize(width, height);
-    p.add(image_pic);
+    image_pic.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.BLACK, Color.BLACK));
+    f.add(image_pic);
   }
   public void setLocation(int x, int y){
     if (x > x_bound - width)
       x = x_bound - width;
     if (x < 0)
       x = 0;
-    if (y < 0)
-      y = 0;
+    /*if (y < 0)
+      y = 0;*/
     if (y > y_bound - height)
       y = y_bound - height;
     image_pic.setLocation(x,y);

@@ -8,8 +8,10 @@ public class Platform extends JPanel {
         setBackground(Color.LIGHT_GRAY);
         setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.BLACK, Color.BLACK));
         setLocation(x,y);
-        setBounds(x,y,125,22);
-        setSize(125,22);
-        setPreferredSize(new Dimension(125,22));
+        int width = 125;
+        int height = 10;
+        setBounds(x,y,width,height);
+        setSize(width,height);
+        setPreferredSize(new Dimension(width,height));
     }
 }

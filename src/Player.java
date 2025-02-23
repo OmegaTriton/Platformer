@@ -4,7 +4,7 @@ import java.awt.event.KeyEvent;
 import java.util.Iterator;
 import java.awt.Color;
 
-public abstract class Player extends Entity {
+public class Player extends Entity {
     private int speed;
     private double y_velo = 0;
     private boolean can_move = true;
@@ -16,9 +16,10 @@ public abstract class Player extends Entity {
     private final long jump_delay = 50 * 1000000; // milli seconds -> nano seconds
     private ArrayList<Integer> inputs;
     private ArrayList<Integer> uninputs;
+    private boolean platformCollision = false;
 
-    public Player(JPanel p, JFrame f, String filePath, double scale, double jump_time_len, int speed){
-        super(p, f, filePath, scale);
+    public Player(JFrame f, String filePath, double scale, double jump_time_len, int speed){
+        super(f, filePath, scale);
         time_of_last_jump = System.nanoTime() - jump_delay;
         jump_time = jump_time_len;
         this.speed = speed;
@@ -27,7 +28,8 @@ public abstract class Player extends Entity {
     }
 
     public void jump() {
-        if ((!jumped && System.nanoTime() - time_of_last_jump > jump_delay && reached_ground) || isA().equals("paper")) {
+        System.out.println(!jumped && System.nanoTime() - time_of_last_jump > jump_delay && reached_ground);
+        if (!jumped && System.nanoTime() - time_of_last_jump > jump_delay && reached_ground) {
             jumped = true;
             y_velo += gravity_modifier*jump_time/2;
             time_of_last_jump = System.nanoTime() + jump_delay;
@@ -41,12 +43,12 @@ public abstract class Player extends Entity {
             ticks_since_last_reached_ground = 0;
             y_velo = 0;
         }
-        else
+        else if(!platformCollision)
             reached_ground = false;
         super.setLocation(x, y);
     }
 
-    public void tick(){
+    public void tick(ArrayList<Platform> platforms){
         int x = getX();
         int y = getY();
         if((jumped || !reached_ground)){
@@ -65,6 +67,21 @@ public abstract class Player extends Entity {
             }
         }}
         y -= y_velo;
+        boolean flag = false;
+        for(Platform platform : platforms){ //collision detection with platforms
+            if(x > platform.getX() - this.getWidth() && x < platform.getX() + platform.getWidth()){ //if the x align with a platform
+                if(y + this.getHeight() < platform.getY() + platform.getHeight() + this.getHeight()*7/8 && y + this.getHeight() >= platform.getY()){ //if the y aligns
+                    platformCollision = true;
+                    flag = true;
+                    y = platform.getY() - this.getHeight();
+                    reached_ground = true;
+                    jumped = false;
+                    ticks_since_last_reached_ground = 0;
+                    y_velo = 0;
+                }
+            }
+        }
+        if(!flag) platformCollision = false;
         setLocation(x, y);
     }
 
